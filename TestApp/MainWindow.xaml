@@ -6,10 +6,11 @@
         xmlns:lib="clr-namespace:WpfWrapPanel;assembly=WpfWrapPanel"
         xmlns:local="clr-namespace:TestApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800"
+        x:Name="TheWindow">
     <Window.Resources>
         <DataTemplate DataType="{x:Type local:ItemViewModel}">
-            <StackPanel Width="70" Height="70">
+            <StackPanel Width="{Binding DataContext.ItemSize, ElementName=TheWindow}" Height="{Binding DataContext.ItemSize, ElementName=TheWindow}">
                 <Rectangle Width="50" Height="50" Fill="{Binding Color}" Margin="0,0,10,0" HorizontalAlignment="Center"/>
                 <TextBlock Text="{Binding Name}" Margin="0,0,10,0" HorizontalAlignment="Center"/>
             </StackPanel>
@@ -26,6 +27,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Label Grid.Row="0" Grid.Column="0" Content="Standard WrapPanel" HorizontalAlignment="Center" FontWeight="Bold" Margin="10"/>
@@ -48,10 +50,16 @@
                  VirtualizingPanel.VirtualizationMode="Recycling">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <lib:VirtualizingWrapPanel ItemWidth="70" ItemHeight="70" 
+                    <lib:VirtualizingWrapPanel ItemWidth="{Binding DataContext.ItemSize, ElementName=TheWindow}" 
+                                               ItemHeight="{Binding DataContext.ItemSize, ElementName=TheWindow}" 
                                                 HorizontalSpacing="5" VerticalSpacing="5"/>
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
         </ListBox>
+
+        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal">
+            <TextBlock Text="Item Size:" VerticalAlignment="Center" Margin="5"/>
+            <Slider Minimum="50" Maximum="200" Value="{Binding ItemSize}" Width="100" Margin="5"/>
+        </StackPanel>
     </Grid>
 </Window>

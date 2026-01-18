@@ -19,6 +19,19 @@ public class MainViewModel : ObservableObject
         }
     }
 
+    private double _itemSize = 70;
+
+    public double ItemSize
+    {
+        get { return _itemSize; }
+        set
+        {
+            _itemSize = value;
+            OnPropertyChanged();
+        }
+    }
+
+
     public ObservableCollection<ItemViewModel> LotsOfItems { get; } = new();
 }
 

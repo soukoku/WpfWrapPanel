@@ -52,7 +52,8 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             typeof(VirtualizingWrapPanel),
             new FrameworkPropertyMetadata(
                 double.NaN,
-                FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
+                FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange,
+                OnItemSizeChanged));
 
     /// <summary>
     /// Identifies the <see cref="ItemHeight"/> dependency property.
@@ -64,7 +65,24 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             typeof(VirtualizingWrapPanel),
             new FrameworkPropertyMetadata(
                 double.NaN,
-                FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
+                FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange,
+                OnItemSizeChanged));
+
+    /// <summary>
+    /// Called when ItemWidth or ItemHeight changes.
+    /// </summary>
+    private static void OnItemSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is VirtualizingWrapPanel panel)
+        {
+            // Reset cached sizes to force recalculation
+            panel._itemSize = new Size(100, 100);
+            panel._stretchedItemSize = new Size(100, 100);
+            
+            // Clamp scroll offset to prevent invalid positions after size change
+            panel.ClampScrollOffset();
+        }
+    }
 
     /// <summary>
     /// Identifies the <see cref="HorizontalSpacing"/> dependency property.
@@ -888,20 +906,35 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         }
 
         // Clamp offset
-        var newOffsetX = Math.Max(0, Math.Min(_offset.X, ExtentWidth - ViewportWidth));
-        var newOffsetY = Math.Max(0, Math.Min(_offset.Y, ExtentHeight - ViewportHeight));
-
-        if (newOffsetX != _offset.X || newOffsetY != _offset.Y)
+        if (ClampScrollOffset())
         {
-            _offset = new Point(newOffsetX, newOffsetY);
             changed = true;
         }
-
 
         if (changed)
         {
             _scrollOwner?.InvalidateScrollInfo();
         }
+    }
+
+    /// <summary>
+    /// Clamps the scroll offset to valid bounds based on current extent and viewport.
+    /// </summary>
+    /// <returns>True if the offset was changed.</returns>
+    private bool ClampScrollOffset()
+    {
+        var maxOffsetX = Math.Max(0, ExtentWidth - ViewportWidth);
+        var maxOffsetY = Math.Max(0, ExtentHeight - ViewportHeight);
+        
+        var newOffsetX = Math.Max(0, Math.Min(_offset.X, maxOffsetX));
+        var newOffsetY = Math.Max(0, Math.Min(_offset.Y, maxOffsetY));
+
+        if (newOffsetX != _offset.X || newOffsetY != _offset.Y)
+        {
+            _offset = new Point(newOffsetX, newOffsetY);
+            return true;
+        }
+        return false;
     }
 
     private void ScheduleDeferredMeasure()
