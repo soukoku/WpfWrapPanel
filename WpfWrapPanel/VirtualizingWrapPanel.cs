@@ -7,6 +7,6 @@ using System.Windows.Controls;
 
 namespace WpfWrapPanel;
 
-public class VirtualizingWrapPanel : WrapPanel
+public class VirtualizingWrapPanel : VirtualizingPanel
 {
 }

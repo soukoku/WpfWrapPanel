@@ -3,10 +3,52 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:lib="clr-namespace:WpfWrapPanel;assembly=WpfWrapPanel"
         xmlns:local="clr-namespace:TestApp"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type local:ItemViewModel}">
+            <StackPanel Margin="5">
+                <Rectangle Width="50" Height="50" Fill="{Binding Color}" Margin="0,0,10,0" HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding Name}" Margin="0,0,10,0" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </DataTemplate>
+    </Window.Resources>
+    <Window.DataContext>
+        <local:MainViewModel />
+    </Window.DataContext>
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
+        <Label Grid.Row="0" Grid.Column="0" Content="Standard WrapPanel" HorizontalAlignment="Center" FontWeight="Bold" Margin="10"/>
+
+        <ListBox Grid.Column="0" Grid.Row="1" Margin="10" ItemsSource="{Binding LotsOfItems}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+        </ListBox>
+
+
+        <Label Grid.Row="0" Grid.Column="1" Content="VirtualizingWrapPanel" HorizontalAlignment="Center" FontWeight="Bold" Margin="10"/>
+
+        <ListBox Grid.Column="1" Grid.Row="1" Margin="10" ItemsSource="{Binding LotsOfItems}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <lib:VirtualizingWrapPanel IsVirtualizing="True" VirtualizationMode="Recycling"/>
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+        </ListBox>
     </Grid>
 </Window>
