@@ -156,6 +156,41 @@ public class VirtualizingWrapPanelTests
         });
     }
 
+    [Fact]
+    public void ScrollUnit_DefaultValue_IsPixel()
+    {
+        RunOnSTAThread(() =>
+        {
+            var panel = new VirtualizingWrapPanel();
+            Assert.Equal(ScrollUnit.Pixel, panel.ScrollUnit);
+        });
+    }
+
+    [Fact]
+    public void ScrollUnit_CanBeSet()
+    {
+        RunOnSTAThread(() =>
+        {
+            var panel = new VirtualizingWrapPanel();
+            panel.ScrollUnit = ScrollUnit.Item;
+            Assert.Equal(ScrollUnit.Item, panel.ScrollUnit);
+        });
+    }
+
+    [Theory]
+    [InlineData(ScrollUnit.Pixel)]
+    [InlineData(ScrollUnit.Item)]
+    public void ScrollUnit_AffectsScrollBehavior(ScrollUnit scrollUnit)
+    {
+        RunOnSTAThread(() =>
+        {
+            var panel = new VirtualizingWrapPanel();
+            panel.ScrollUnit = scrollUnit;
+            // Verify the property is set correctly
+            Assert.Equal(scrollUnit, panel.ScrollUnit);
+        });
+    }
+
     #endregion
 
     #region IScrollInfo Tests

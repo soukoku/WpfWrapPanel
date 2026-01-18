@@ -7,6 +7,22 @@ using System.Windows.Threading;
 namespace WpfWrapPanel;
 
 /// <summary>
+/// Specifies the unit of scrolling for the VirtualizingWrapPanel.
+/// </summary>
+public enum ScrollUnit
+{
+    /// <summary>
+    /// Scrolling is performed in pixel increments for smooth scrolling.
+    /// </summary>
+    Pixel,
+
+    /// <summary>
+    /// Scrolling snaps to item boundaries.
+    /// </summary>
+    Item
+}
+
+/// <summary>
 /// A virtualizing panel that arranges items in a wrapping layout, similar to WrapPanel,
 /// but with UI virtualization support for improved performance with large collections.
 /// </summary>
@@ -101,6 +117,19 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
                 false,
                 FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
 
+    /// <summary>
+    /// Identifies the <see cref="ScrollUnit"/> dependency property.
+    /// Controls whether scrolling is pixel-based (smooth) or item-based (snaps to items).
+    /// </summary>
+    public static readonly DependencyProperty ScrollUnitProperty =
+        DependencyProperty.Register(
+            nameof(ScrollUnit),
+            typeof(ScrollUnit),
+            typeof(VirtualizingWrapPanel),
+            new FrameworkPropertyMetadata(
+                ScrollUnit.Pixel,
+                FrameworkPropertyMetadataOptions.AffectsArrange));
+
     #endregion
 
     #region CLR Properties
@@ -172,6 +201,17 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     {
         get => (bool)GetValue(StretchItemsProperty);
         set => SetValue(StretchItemsProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the scroll unit for the panel.
+    /// Pixel provides smooth scrolling, Item snaps to item boundaries.
+    /// Default is Pixel.
+    /// </summary>
+    public ScrollUnit ScrollUnit
+    {
+        get => (ScrollUnit)GetValue(ScrollUnitProperty);
+        set => SetValue(ScrollUnitProperty, value);
     }
 
     #endregion
@@ -246,16 +286,16 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     public void LineRight() => SetHorizontalOffset(HorizontalOffset + GetLineScrollAmount());
 
     /// <inheritdoc/>
-    public void PageUp() => SetVerticalOffset(VerticalOffset - ViewportHeight);
+    public void PageUp() => SetVerticalOffset(VerticalOffset - GetPageScrollAmount(isVertical: true));
 
     /// <inheritdoc/>
-    public void PageDown() => SetVerticalOffset(VerticalOffset + ViewportHeight);
+    public void PageDown() => SetVerticalOffset(VerticalOffset + GetPageScrollAmount(isVertical: true));
 
     /// <inheritdoc/>
-    public void PageLeft() => SetHorizontalOffset(HorizontalOffset - ViewportWidth);
+    public void PageLeft() => SetHorizontalOffset(HorizontalOffset - GetPageScrollAmount(isVertical: false));
 
     /// <inheritdoc/>
-    public void PageRight() => SetHorizontalOffset(HorizontalOffset + ViewportWidth);
+    public void PageRight() => SetHorizontalOffset(HorizontalOffset + GetPageScrollAmount(isVertical: false));
 
     /// <inheritdoc/>
     public void MouseWheelUp() => SetVerticalOffset(VerticalOffset - GetMouseWheelScrollAmount());
@@ -273,6 +313,19 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     public void SetHorizontalOffset(double offset)
     {
         offset = Math.Max(0, Math.Min(offset, ExtentWidth - ViewportWidth));
+        
+        // Snap to item boundaries when using item-based scrolling
+        if (ScrollUnit == ScrollUnit.Item && Orientation == Orientation.Vertical)
+        {
+            var effectiveSize = StretchItems ? _stretchedItemSize : _itemSize;
+            var columnWidth = effectiveSize.Width + HorizontalSpacing;
+            if (columnWidth > 0)
+            {
+                offset = Math.Round(offset / columnWidth) * columnWidth;
+                offset = Math.Max(0, Math.Min(offset, ExtentWidth - ViewportWidth));
+            }
+        }
+        
         if (offset != _offset.X)
         {
             _offset.X = offset;
@@ -285,6 +338,19 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     public void SetVerticalOffset(double offset)
     {
         offset = Math.Max(0, Math.Min(offset, ExtentHeight - ViewportHeight));
+        
+        // Snap to item boundaries when using item-based scrolling
+        if (ScrollUnit == ScrollUnit.Item && Orientation == Orientation.Horizontal)
+        {
+            var effectiveSize = StretchItems ? _stretchedItemSize : _itemSize;
+            var rowHeight = effectiveSize.Height + VerticalSpacing;
+            if (rowHeight > 0)
+            {
+                offset = Math.Round(offset / rowHeight) * rowHeight;
+                offset = Math.Max(0, Math.Min(offset, ExtentHeight - ViewportHeight));
+            }
+        }
+        
         if (offset != _offset.Y)
         {
             _offset.Y = offset;
@@ -342,6 +408,14 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
 
     private double GetLineScrollAmount()
     {
+        if (ScrollUnit == ScrollUnit.Pixel)
+        {
+            // Pixel scrolling: use a fixed pixel amount for smooth scrolling
+            const double PixelScrollAmount = 16.0;
+            return PixelScrollAmount;
+        }
+        
+        // Item scrolling: scroll by one row/column
         return Orientation == Orientation.Horizontal
             ? _itemSize.Height + VerticalSpacing
             : _itemSize.Width + HorizontalSpacing;
@@ -349,7 +423,39 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
 
     private double GetMouseWheelScrollAmount()
     {
+        if (ScrollUnit == ScrollUnit.Pixel)
+        {
+            // Pixel scrolling: use system wheel scroll lines with a pixel multiplier
+            const double PixelPerLine = 16.0;
+            return PixelPerLine * SystemParameters.WheelScrollLines;
+        }
+        
+        // Item scrolling: scroll by system wheel lines worth of rows/columns
         return GetLineScrollAmount() * SystemParameters.WheelScrollLines;
+    }
+
+    private double GetPageScrollAmount(bool isVertical)
+    {
+        if (ScrollUnit == ScrollUnit.Pixel)
+        {
+            // Pixel scrolling: use viewport size
+            return isVertical ? ViewportHeight : ViewportWidth;
+        }
+        
+        // Item scrolling: scroll by whole rows/columns that fit in viewport
+        var effectiveSize = StretchItems ? _stretchedItemSize : _itemSize;
+        if (isVertical)
+        {
+            var rowHeight = effectiveSize.Height + VerticalSpacing;
+            var rowsPerPage = Math.Max(1, (int)(ViewportHeight / rowHeight));
+            return rowsPerPage * rowHeight;
+        }
+        else
+        {
+            var columnWidth = effectiveSize.Width + HorizontalSpacing;
+            var columnsPerPage = Math.Max(1, (int)(ViewportWidth / columnWidth));
+            return columnsPerPage * columnWidth;
+        }
     }
 
     #endregion
@@ -361,11 +467,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     /// Use this method to scroll to virtualized items that don't have containers yet.
     /// </summary>
     /// <param name="index">The index of the item to bring into view.</param>
-#if NETFRAMEWORK
     public new void BringIndexIntoView(int index)
-#else
-    protected override void BringIndexIntoView(int index)
-#endif
     {
         BringIndexIntoViewInternal(index);
     }

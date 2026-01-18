@@ -79,8 +79,8 @@ Required properties and methods:
   - `SetHorizontalOffset(double)`, `SetVerticalOffset(double)`
   - `MakeVisible(Visual, Rect)` - Scroll item into view
 
-#### 5.2 Scrolling Modes
-- **Pixel-based scrolling**: Smooth scrolling by pixels
+#### 5.2 Scrolling Modes ✅ IMPLEMENTED
+- **Pixel-based scrolling**: Smooth scrolling by pixels (default)
 - **Item-based scrolling**: Snap to item boundaries
 - Property: `ScrollUnit` (Pixel/Item)
 
