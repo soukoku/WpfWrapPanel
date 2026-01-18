@@ -26,8 +26,14 @@ public partial class MainWindow : Window
         if (StandardListBox.SelectedItem is null)
             return;
 
-        // Sync selection
-        VirtualizingListBox.SelectedItem = StandardListBox.SelectedItem;
+
+        VirtualizingListBox.SelectedItems.Clear();
+        foreach (var item in StandardListBox.SelectedItems)
+        {
+            VirtualizingListBox.SelectedItems.Add(item);
+        }
+
+        // Sync first selection
 #if NETFRAMEWORK
         // For virtualized items, we need to get the panel and call BringIndexIntoView directly
         var index = StandardListBox.SelectedIndex;
