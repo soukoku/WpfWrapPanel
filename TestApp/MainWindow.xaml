@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vwp="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
         xmlns:lib="clr-namespace:WpfWrapPanel;assembly=WpfWrapPanel"
         xmlns:local="clr-namespace:TestApp"
         mc:Ignorable="d"
@@ -21,6 +22,7 @@
     </Window.DataContext>
     <Grid>
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
@@ -59,7 +61,23 @@
             </ListBox.ItemsPanel>
         </ListBox>
 
-        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal">
+
+        <Label Grid.Row="0" Grid.Column="2" Content="VWP VirtualizingWrapPanel" HorizontalAlignment="Center" FontWeight="Bold" Margin="10"/>
+
+        <ListBox x:Name="vwpVirtualizingListBox" Grid.Column="2" Grid.Row="1" Margin="10" ItemsSource="{Binding LotsOfItems}" SelectionMode="Extended"
+                 VirtualizingPanel.IsVirtualizing="True"
+                 VirtualizingPanel.VirtualizationMode="Recycling"
+                 VirtualizingPanel.CacheLength="2,2"
+                 VirtualizingPanel.CacheLengthUnit="Item"
+                 VirtualizingPanel.ScrollUnit="Pixel">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <vwp:VirtualizingWrapPanel />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+        </ListBox>
+        
+        <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal">
             <TextBlock Text="Item Size:" VerticalAlignment="Center" Margin="5"/>
             <Slider Minimum="50" Maximum="200" Value="{Binding ItemSize}" Width="100" Margin="5"/>
         </StackPanel>

@@ -35,13 +35,17 @@ public partial class MainWindow : Window
 
 
         VirtualizingListBox.SelectedItems.Clear();
+        vwpVirtualizingListBox.SelectedItems.Clear();
         foreach (var item in StandardListBox.SelectedItems)
         {
             VirtualizingListBox.SelectedItems.Add(item);
+            vwpVirtualizingListBox.SelectedItems.Add(item);
         }
 
         // Sync first selection
 #if NETFRAMEWORK
+        vwpVirtualizingListBox.ScrollIntoView(VirtualizingListBox.SelectedItem);
+
         // For virtualized items, we need to get the panel and call BringIndexIntoView directly
         var index = StandardListBox.SelectedIndex;
         if (index >= 0)
