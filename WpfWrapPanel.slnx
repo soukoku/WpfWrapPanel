@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TestApp/TestApp.csproj" />
+  <Project Path="WpfWrapPanel/WpfWrapPanel.csproj" />
+</Solution>
