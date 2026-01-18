@@ -19,4 +19,14 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
     }
+
+    private void StandardListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // try to get virtualizing item to scroll into view
+        if (StandardListBox.SelectedItem is not null)
+        {
+            VirtualizingListBox.SelectedItem = StandardListBox.SelectedItem;
+            VirtualizingListBox.ScrollIntoView(StandardListBox.SelectedItem);
+        }
+    }
 }

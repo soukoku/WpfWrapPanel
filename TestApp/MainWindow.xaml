@@ -30,8 +30,8 @@
 
         <Label Grid.Row="0" Grid.Column="0" Content="Standard WrapPanel" HorizontalAlignment="Center" FontWeight="Bold" Margin="10"/>
 
-        <ListBox Grid.Column="0" Grid.Row="1" Margin="10" ItemsSource="{Binding LotsOfItems}"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <ListBox x:Name="StandardListBox" Grid.Column="0" Grid.Row="1" Margin="10" ItemsSource="{Binding LotsOfItems}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="StandardListBox_SelectionChanged">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel />
@@ -42,7 +42,7 @@
 
         <Label Grid.Row="0" Grid.Column="1" Content="VirtualizingWrapPanel" HorizontalAlignment="Center" FontWeight="Bold" Margin="10"/>
 
-        <ListBox Grid.Column="1" Grid.Row="1" Margin="10" ItemsSource="{Binding LotsOfItems}"
+        <ListBox x:Name="VirtualizingListBox" Grid.Column="1" Grid.Row="1" Margin="10" ItemsSource="{Binding LotsOfItems}"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  VirtualizingPanel.IsVirtualizing="True"
                  VirtualizingPanel.VirtualizationMode="Recycling">
