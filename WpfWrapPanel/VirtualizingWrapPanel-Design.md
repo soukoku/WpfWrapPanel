@@ -1,16 +1,16 @@
-﻿# VirtualizingWrapPanel Design Document
+# VirtualizingWrapPanel Design Document
 
 ## Overview
 A VirtualizingWrapPanel is a WPF panel that combines the wrapping behavior of WrapPanel with UI virtualization capabilities. It only creates and maintains UI elements for items that are currently visible in the viewport, significantly improving performance when displaying large collections.
 
 ## Core Requirements
 
-### 1. Panel Base Class ✅
+### 1. Panel Base Class ?
 - **Inherit from**: `VirtualizingPanel` (not `WrapPanel`)
   - WrapPanel doesn't support virtualization infrastructure
   - VirtualizingPanel provides the necessary hooks for ItemsControl virtualization
 
-### 2. Orientation Support ✅
+### 2. Orientation Support ?
 - **Horizontal Orientation** (default)
   - Items flow left-to-right, wrapping to next row
   - Scrolling is primarily vertical
@@ -20,7 +20,7 @@ A VirtualizingWrapPanel is a WPF panel that combines the wrapping behavior of Wr
 
 ### 3. Item Sizing Strategies
 
-#### 3.1 Uniform Item Size (Recommended for Performance) ✅
+#### 3.1 Uniform Item Size (Recommended for Performance) ?
 - All items assumed to be the same size
 - Size determined from first realized item or explicitly specified
 - Properties:
@@ -38,13 +38,13 @@ A VirtualizingWrapPanel is a WPF panel that combines the wrapping behavior of Wr
 
 ### 4. Virtualization Features
 
-#### 4.1 UI Virtualization ✅
+#### 4.1 UI Virtualization ?
 - Only create containers for visible items
 - Implement `MeasureOverride` and `ArrangeOverride`
 - Calculate which items are in viewport
 - Generate containers only for visible items
 
-#### 4.2 Container Recycling ✅
+#### 4.2 Container Recycling ?
 - Use `IItemContainerGenerator` to recycle containers
 - Implement proper generator lifecycle:
   - `StartAt()` - Begin generation
@@ -52,14 +52,14 @@ A VirtualizingWrapPanel is a WPF panel that combines the wrapping behavior of Wr
   - `Remove()` - Remove containers
   - `GeneratorPositionFromIndex()` - Convert index to position
 
-#### 4.3 Viewport Management ✅
+#### 4.3 Viewport Management ?
 - Track viewport offset and size
 - Integrate with `IScrollInfo` interface
 - Calculate visible item range based on scroll position
 
 ### 5. Scrolling Integration
 
-#### 5.1 IScrollInfo Implementation ✅
+#### 5.1 IScrollInfo Implementation ?
 Required properties and methods:
 - **Properties**:
   - `CanHorizontallyScroll` (get/set)
@@ -79,14 +79,14 @@ Required properties and methods:
   - `SetHorizontalOffset(double)`, `SetVerticalOffset(double)`
   - `MakeVisible(Visual, Rect)` - Scroll item into view
 
-#### 5.2 Scrolling Modes ✅ IMPLEMENTED
+#### 5.2 Scrolling Modes ? IMPLEMENTED
 - **Pixel-based scrolling**: Smooth scrolling by pixels (default)
 - **Item-based scrolling**: Snap to item boundaries
 - Property: `ScrollUnit` (Pixel/Item)
 
-### 6. Layout Algorithm ✅
+### 6. Layout Algorithm ?
 
-#### 6.1 Measure Phase ✅
+#### 6.1 Measure Phase ?
 1. Determine available space from constraint
 2. Calculate item size (uniform or from first item)
 3. Calculate items per row/column based on orientation
@@ -97,7 +97,7 @@ Required properties and methods:
 8. Calculate total extent (all items, including non-visible)
 9. Return desired size
 
-#### 6.2 Arrange Phase ✅
+#### 6.2 Arrange Phase ?
 1. Calculate starting offset based on scroll position
 2. For each realized container:
    - Calculate wrap position (row/column index)
@@ -107,12 +107,12 @@ Required properties and methods:
 
 ### 7. Additional Features
 
-#### 7.1 Spacing Support ✅
+#### 7.1 Spacing Support ?
 - `HorizontalSpacing` - Space between items horizontally
 - `VerticalSpacing` - Space between items vertically
 - Apply to layout calculations
 
-#### 7.2 Stretch Behavior ✅
+#### 7.2 Stretch Behavior ?
 - `StretchItems` - Whether items should stretch to fill available space
 - Affects item width in horizontal orientation
 - Affects item height in vertical orientation
@@ -122,9 +122,9 @@ Required properties and methods:
 - `HorizontalAlignment`
 - `VerticalAlignment`
 
-### 8. Performance Optimizations ✅
+### 8. Performance Optimizations ?
 
-#### 8.1 Extent Caching ✅
+#### 8.1 Extent Caching ?
 - Cache calculated extent values
 - Invalidate on:
   - Item count changes
@@ -132,57 +132,59 @@ Required properties and methods:
   - Orientation changes
   - Viewport size changes
 
-#### 8.2 Lazy Realization ✅
+#### 8.2 Lazy Realization ?
 - Don't realize items until absolutely necessary
 - Use buffer zone for smoother scrolling
 - Generate 1-2 items beyond viewport edges
 
-#### 8.3 Cleanup of Unrealized Items ✅
+#### 8.3 Cleanup of Unrealized Items ?
 - Remove containers that scroll out of view
 - Balance between memory and performance
 - Implement cleanup threshold
 
-### 9. Event Handling ✅
+### 9. Event Handling ?
 
-#### 9.1 Collection Changes ✅
+#### 9.1 Collection Changes ?
 - Subscribe to `ItemsChanged` event from generator
 - Handle Add, Remove, Replace, Reset actions
 - Invalidate measure when collection changes
 - Clean up containers for removed items
 
-#### 9.2 Scroll Changes ✅
+#### 9.2 Scroll Changes ?
 - Respond to scroll offset changes
 - Efficiently update visible range
 - Minimize container regeneration
 
-### 10. Dependency Properties ✅
+### 10. Dependency Properties ?
 
-Required custom dependency properties:
-- ✅ `Orientation` (Horizontal/Vertical)
-- ✅ `ItemWidth` (double?, nullable for auto)
-- ✅ `ItemHeight` (double?, nullable for auto)
-- ✅ `HorizontalSpacing` (double, default 0)
-- ✅ `VerticalSpacing` (double, default 0)
-- ✅ `ScrollUnit` (Pixel/Item enumeration)
-- ✅ `StretchItems` (bool, default false)
-- ✅ `CacheLength` (int, default 2)
+Custom dependency properties:
+- ? `Orientation` (Horizontal/Vertical)
+- ? `ItemWidth` (double?, nullable for auto)
+- ? `ItemHeight` (double?, nullable for auto)
+- ? `HorizontalSpacing` (double, default 0)
+- ? `VerticalSpacing` (double, default 0)
+- ? `ScrollUnit` (Pixel/Item enumeration)
+- ? `StretchItems` (bool, default false)
+Uses built-in WPF attached properties (set on ItemsControl):
+- ? `VirtualizingPanel.CacheLength` - cache size before/after viewport
+- ? `VirtualizingPanel.CacheLengthUnit` - Item, Pixel, or Page
 
-### 11. Edge Cases and Error Handling ✅
+### 11. Edge Cases and Error Handling ?
 
-#### 11.1 Empty Collection ✅
+#### 11.1 Empty Collection ?
 - Handle zero items gracefully
 - Return zero extent
 
-#### 11.2 Single Item ✅
+#### 11.2 Single Item ?
 - Don't break on single item scenarios
 - Calculate size correctly
 
-#### 11.3 Very Large Numbers ✅
+#### 11.3 Very Large Numbers ?
 - Handle collections with millions of items
 - Ensure calculations don't overflow
 - Test with extreme scroll positions
 
-#### 11.4 Dynamic Size Changes ✅
+#### 11.4 Dynamic Size Changes ?
 - Respond to item size changes
 - Invalidate and remeasure when needed
 - Property change callbacks
@@ -192,9 +194,9 @@ Required custom dependency properties:
 - Ensure smooth performance
 - Container generation efficiency
 
-### 12. Integration Requirements ✅
+### 12. Integration Requirements ?
 
-#### 12.1 ItemsControl Integration ✅
+#### 12.1 ItemsControl Integration ?
 - Works with `ItemsControl`, `ListBox`, `ListView`
 - Set as `ItemsPanel`:
   ```xaml
@@ -207,13 +209,13 @@ Required custom dependency properties:
   </ListBox>
   ```
 
-#### 12.2 VirtualizingPanel Requirements ✅
+#### 12.2 VirtualizingPanel Requirements ?
 - Enable virtualization on ItemsControl:
   - `VirtualizingPanel.IsVirtualizing="True"`
   - `VirtualizingPanel.VirtualizationMode="Recycling"` (for container recycling)
 - ScrollViewer integration required
 
-### 13. Testing Strategy ✅
+### 13. Testing Strategy ?
 
 #### 13.1 Unit Tests
 - Layout calculations with various item counts
@@ -235,31 +237,31 @@ Required custom dependency properties:
 
 ### 14. Implementation Phases
 
-#### Phase 1: Core Implementation (MVP) ✅ COMPLETED
-1. ✅ Basic VirtualizingPanel inheritance
-2. ✅ IScrollInfo implementation
-3. ✅ Simple horizontal orientation with uniform sizing
-4. ✅ Basic virtualization (visible items only)
-5. ✅ ItemsControl integration
+#### Phase 1: Core Implementation (MVP) ? COMPLETED
+1. ? Basic VirtualizingPanel inheritance
+2. ? IScrollInfo implementation
+3. ? Simple horizontal orientation with uniform sizing
+4. ? Basic virtualization (visible items only)
+5. ? ItemsControl integration
 
-#### Phase 2: Enhanced Features ✅ COMPLETED
-1. ✅ Vertical orientation support
-2. ✅ Item and pixel scrolling modes
-3. ✅ Spacing properties (HorizontalSpacing, VerticalSpacing)
-4. ✅ Container recycling optimization
-5. ✅ Better extent caching
-6. ✅ CacheLength property for buffer zones
+#### Phase 2: Enhanced Features ? COMPLETED
+1. ? Vertical orientation support
+2. ? Item and pixel scrolling modes
+3. ? Spacing properties (HorizontalSpacing, VerticalSpacing)
+4. ? Container recycling optimization
+5. ? Better extent caching
+6. ? CacheLength property for buffer zones
 
-#### Phase 3: Advanced Features ✅ COMPLETED
-1. ✅ Stretch behavior (StretchItems property)
-2. ✅ Performance optimizations (buffer zones - implemented via CacheLength)
+#### Phase 3: Advanced Features ? COMPLETED
+1. ? Stretch behavior (StretchItems property)
+2. ? Performance optimizations (buffer zones - implemented via CacheLength)
 3. Variable item sizing support (deferred - uniform sizing sufficient for most use cases)
-4. ✅ Comprehensive testing
+4. ? Comprehensive testing
 
-#### Phase 4: Polish ✅ COMPLETED
-1. ✅ Accessibility support (AutomationPeer)
-2. ✅ Keyboard navigation (via WPF ListBox/ItemsControl + MakeVisible/BringIndexIntoView)
-3. ✅ Documentation and samples (basic)
+#### Phase 4: Polish ? COMPLETED
+1. ? Accessibility support (AutomationPeer)
+2. ? Keyboard navigation (via WPF ListBox/ItemsControl + MakeVisible/BringIndexIntoView)
+3. ? Documentation and samples (basic)
 4. Performance profiling and optimization (ongoing)
 
 ### 15. Known Limitations and Future Enhancements
@@ -335,3 +337,4 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
 ## Summary
 
 This design provides a robust foundation for a production-ready VirtualizingWrapPanel. The phased approach allows for incremental development while ensuring core functionality works correctly before adding advanced features. The focus on uniform item sizing in the initial implementation balances performance with complexity, while leaving room for future enhancement.
+

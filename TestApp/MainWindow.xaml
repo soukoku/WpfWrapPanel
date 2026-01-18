@@ -47,7 +47,9 @@
         <ListBox x:Name="VirtualizingListBox" Grid.Column="1" Grid.Row="1" Margin="10" ItemsSource="{Binding LotsOfItems}" SelectionMode="Extended"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  VirtualizingPanel.IsVirtualizing="True"
-                 VirtualizingPanel.VirtualizationMode="Recycling">
+                 VirtualizingPanel.VirtualizationMode="Recycling"
+                 VirtualizingPanel.CacheLength="2,2"
+                 VirtualizingPanel.CacheLengthUnit="Item">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <lib:VirtualizingWrapPanel ItemWidth="{Binding DataContext.ItemSize, ElementName=TheWindow}" 

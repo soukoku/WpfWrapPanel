@@ -114,26 +114,9 @@ public class VirtualizingWrapPanelTests
         });
     }
 
-    [Fact]
-    public void CacheLength_DefaultValue_IsTwo()
-    {
-        RunOnSTAThread(() =>
-        {
-            var panel = new VirtualizingWrapPanel();
-            Assert.Equal(2, panel.CacheLength);
-        });
-    }
-
-    [Fact]
-    public void CacheLength_CanBeSet()
-    {
-        RunOnSTAThread(() =>
-        {
-            var panel = new VirtualizingWrapPanel();
-            panel.CacheLength = 5;
-            Assert.Equal(5, panel.CacheLength);
-        });
-    }
+    // Note: CacheLength is now using the built-in VirtualizingPanel.CacheLength attached property
+    // which is set on the ItemsControl, not the panel. Tests for this would require a full
+    // ItemsControl integration test.
 
     [Fact]
     public void StretchItems_DefaultValue_IsFalse()

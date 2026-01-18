@@ -103,20 +103,6 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
                 0.0,
                 FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
 
-
-    /// <summary>
-    /// Identifies the <see cref="CacheLength"/> dependency property.
-    /// Controls how many additional rows/columns of items are cached beyond the visible viewport.
-    /// </summary>
-    public static readonly DependencyProperty CacheLengthProperty =
-        DependencyProperty.Register(
-            nameof(CacheLength),
-            typeof(int),
-            typeof(VirtualizingWrapPanel),
-            new FrameworkPropertyMetadata(
-                2,
-                FrameworkPropertyMetadataOptions.AffectsMeasure));
-
     /// <summary>
     /// Identifies the <see cref="StretchItems"/> dependency property.
     /// When true, items are stretched to fill available space in each row/column.
@@ -192,17 +178,6 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     {
         get => (double)GetValue(VerticalSpacingProperty);
         set => SetValue(VerticalSpacingProperty, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the number of extra rows/columns of items to cache beyond the visible viewport.
-    /// Higher values improve scrolling performance but use more memory.
-    /// Default is 2.
-    /// </summary>
-    public int CacheLength
-    {
-        get => (int)GetValue(CacheLengthProperty);
-        set => SetValue(CacheLengthProperty, value);
     }
 
     /// <summary>
@@ -733,18 +708,30 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
 
     private void CalculateVisibleRange(int itemCount)
     {
-        var cacheLength = CacheLength;
+        // Use built-in VirtualizingPanel.CacheLength attached property
+        // This is set on the ItemsControl (e.g., ListBox) not the panel itself
+        var itemsControl = ItemsControl.GetItemsOwner(this);
+        var cacheLength = itemsControl != null 
+            ? VirtualizingPanel.GetCacheLength(itemsControl) 
+            : new VirtualizationCacheLength(2, 2);
+        var cacheLengthUnit = itemsControl != null 
+            ? VirtualizingPanel.GetCacheLengthUnit(itemsControl) 
+            : VirtualizationCacheLengthUnit.Item;
 
         // Use stretched size for layout calculations
         var effectiveSize = StretchItems ? _stretchedItemSize : _itemSize;
-
 
         if (Orientation == Orientation.Horizontal)
         {
             // Vertical scrolling
             var rowHeight = effectiveSize.Height + VerticalSpacing;
-            var firstVisibleRow = Math.Max(0, (int)(VerticalOffset / rowHeight) - cacheLength);
-            var visibleRows = (int)Math.Ceiling((_viewport.Height + rowHeight) / rowHeight) + 1 + (cacheLength * 2);
+            
+            // Calculate cache in rows based on cache unit
+            int cacheRowsBefore = GetCacheRows(cacheLength.CacheBeforeViewport, cacheLengthUnit, rowHeight, _viewport.Height);
+            int cacheRowsAfter = GetCacheRows(cacheLength.CacheAfterViewport, cacheLengthUnit, rowHeight, _viewport.Height);
+            
+            var firstVisibleRow = Math.Max(0, (int)(VerticalOffset / rowHeight) - cacheRowsBefore);
+            var visibleRows = (int)Math.Ceiling((_viewport.Height + rowHeight) / rowHeight) + 1 + cacheRowsBefore + cacheRowsAfter;
 
             _firstVisibleIndex = Math.Max(0, firstVisibleRow * _itemsPerRow);
             _lastVisibleIndex = Math.Min(itemCount - 1, _firstVisibleIndex + (visibleRows * _itemsPerRow) - 1);
@@ -753,12 +740,34 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         {
             // Horizontal scrolling
             var columnWidth = effectiveSize.Width + HorizontalSpacing;
-            var firstVisibleColumn = Math.Max(0, (int)(HorizontalOffset / columnWidth) - cacheLength);
-            var visibleColumns = (int)Math.Ceiling((_viewport.Width + columnWidth) / columnWidth) + 1 + (cacheLength * 2);
+            
+            // Calculate cache in columns based on cache unit
+            int cacheColumnsBefore = GetCacheRows(cacheLength.CacheBeforeViewport, cacheLengthUnit, columnWidth, _viewport.Width);
+            int cacheColumnsAfter = GetCacheRows(cacheLength.CacheAfterViewport, cacheLengthUnit, columnWidth, _viewport.Width);
+            
+            var firstVisibleColumn = Math.Max(0, (int)(HorizontalOffset / columnWidth) - cacheColumnsBefore);
+            var visibleColumns = (int)Math.Ceiling((_viewport.Width + columnWidth) / columnWidth) + 1 + cacheColumnsBefore + cacheColumnsAfter;
 
             _firstVisibleIndex = Math.Max(0, firstVisibleColumn * _itemsPerRow);
             _lastVisibleIndex = Math.Min(itemCount - 1, _firstVisibleIndex + (visibleColumns * _itemsPerRow) - 1);
         }
+    }
+
+    /// <summary>
+    /// Converts cache length to number of rows/columns based on the cache unit.
+    /// </summary>
+    private static int GetCacheRows(double cacheValue, VirtualizationCacheLengthUnit unit, double rowSize, double viewportSize)
+    {
+        if (cacheValue <= 0 || rowSize <= 0)
+            return 0;
+
+        return unit switch
+        {
+            VirtualizationCacheLengthUnit.Item => (int)cacheValue,
+            VirtualizationCacheLengthUnit.Pixel => (int)Math.Ceiling(cacheValue / rowSize),
+            VirtualizationCacheLengthUnit.Page => (int)Math.Ceiling((cacheValue * viewportSize) / rowSize),
+            _ => (int)cacheValue
+        };
     }
 
     private void RealizeItems()
