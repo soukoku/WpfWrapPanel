@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace WpfWrapPanel;
 
@@ -183,6 +184,8 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     private Point _offset = new(0, 0);
     private ScrollViewer? _scrollOwner;
 
+    // Track if we have a pending deferred measure
+    private bool _hasPendingMeasure;
 
     // Cached item size (calculated from first item or from ItemWidth/ItemHeight)
     private Size _itemSize = new(100, 100);
@@ -394,6 +397,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     #endregion
 
     #region Layout Overrides
+
 
     /// <inheritdoc/>
     protected override Size MeasureOverride(Size availableSize)
@@ -622,15 +626,20 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         var generator = ItemContainerGenerator;
         
         // Generator can be null before the panel is connected to an ItemsControl,
-        // during template application, or after disconnection from the visual tree
+        // during template application, or after disconnection from the visual tree.
+        // Schedule a deferred measure to retry once the generator becomes available.
         if (generator == null)
+        {
+            ScheduleDeferredMeasure();
             return;
+        }
         
         // Clean up items that are no longer visible
         CleanupItems();
 
         if (_firstVisibleIndex > _lastVisibleIndex)
             return;
+
 
         // Use stretched size for measuring when StretchItems is enabled
         var measureSize = StretchItems ? _stretchedItemSize : _itemSize;
@@ -761,10 +770,26 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             changed = true;
         }
 
+
         if (changed)
         {
             _scrollOwner?.InvalidateScrollInfo();
         }
+    }
+
+    private void ScheduleDeferredMeasure()
+    {
+        if (_hasPendingMeasure)
+            return;
+
+        _hasPendingMeasure = true;
+        
+        // Schedule a deferred measure after the current layout pass completes
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+        {
+            _hasPendingMeasure = false;
+            InvalidateMeasure();
+        }));
     }
 
     #endregion

@@ -9,7 +9,7 @@
         Title="MainWindow" Height="450" Width="800">
     <Window.Resources>
         <DataTemplate DataType="{x:Type local:ItemViewModel}">
-            <StackPanel Margin="5">
+            <StackPanel Width="70" Height="70">
                 <Rectangle Width="50" Height="50" Fill="{Binding Color}" Margin="0,0,10,0" HorizontalAlignment="Center"/>
                 <TextBlock Text="{Binding Name}" Margin="0,0,10,0" HorizontalAlignment="Center"/>
             </StackPanel>
@@ -48,7 +48,7 @@
                  VirtualizingPanel.VirtualizationMode="Recycling">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <lib:VirtualizingWrapPanel ItemWidth="70" ItemHeight="90" 
+                    <lib:VirtualizingWrapPanel ItemWidth="70" ItemHeight="70" 
                                                 HorizontalSpacing="5" VerticalSpacing="5"/>
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
