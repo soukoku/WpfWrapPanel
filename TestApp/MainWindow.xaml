@@ -55,8 +55,7 @@
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <lib:VirtualizingWrapPanel ItemWidth="{Binding DataContext.ItemSize, ElementName=TheWindow}" 
-                                               ItemHeight="{Binding DataContext.ItemSize, ElementName=TheWindow}" 
-                                                HorizontalSpacing="5" VerticalSpacing="5"/>
+                                               ItemHeight="{Binding DataContext.ItemSize, ElementName=TheWindow}" />
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
         </ListBox>
@@ -72,7 +71,7 @@
                  VirtualizingPanel.ScrollUnit="Pixel">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <vwp:VirtualizingWrapPanel />
+                    <vwp:VirtualizingWrapPanel SpacingMode="None"/>
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
         </ListBox>
