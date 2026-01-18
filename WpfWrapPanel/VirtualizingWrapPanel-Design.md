@@ -279,7 +279,7 @@ Required custom dependency properties:
 ### 16. Dependencies and Compatibility
 
 #### Framework Requirements
-- .NET Framework 4.6.2+ or .NET Core 3.1+ / .NET 5+
+- .NET Framework 4.6.2+ or .NET 8+
 - WPF framework assemblies
 
 #### Required Namespaces
