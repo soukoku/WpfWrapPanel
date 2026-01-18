@@ -116,19 +116,6 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
                 false,
                 FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsArrange));
 
-    /// <summary>
-    /// Identifies the <see cref="ScrollUnit"/> dependency property.
-    /// Controls whether scrolling is pixel-based (smooth) or item-based (snaps to items).
-    /// </summary>
-    public static readonly DependencyProperty ScrollUnitProperty =
-        DependencyProperty.Register(
-            nameof(ScrollUnit),
-            typeof(ScrollUnit),
-            typeof(VirtualizingWrapPanel),
-            new FrameworkPropertyMetadata(
-                ScrollUnit.Pixel,
-                FrameworkPropertyMetadataOptions.AffectsArrange));
-
     #endregion
 
     #region CLR Properties
@@ -191,15 +178,16 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         set => SetValue(StretchItemsProperty, value);
     }
 
-    /// <summary>
-    /// Gets or sets the scroll unit for the panel.
-    /// Pixel provides smooth scrolling, Item snaps to item boundaries.
-    /// Default is Pixel.
-    /// </summary>
-    public ScrollUnit ScrollUnit
+
+    ScrollUnit ScrollUnit
     {
-        get => (ScrollUnit)GetValue(ScrollUnitProperty);
-        set => SetValue(ScrollUnitProperty, value);
+        get
+        {
+            var itemsControl = ItemsControl.GetItemsOwner(this);
+            return itemsControl != null
+                ? VirtualizingPanel.GetScrollUnit(itemsControl)
+                : ScrollUnit.Pixel;
+        }
     }
 
     #endregion

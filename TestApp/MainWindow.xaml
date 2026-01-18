@@ -42,14 +42,14 @@
         </ListBox>
 
 
-        <Label Grid.Row="0" Grid.Column="1" Content="VirtualizingWrapPanel" HorizontalAlignment="Center" FontWeight="Bold" Margin="10"/>
+        <Label Grid.Row="0" Grid.Column="1" Content="Our VirtualizingWrapPanel" HorizontalAlignment="Center" FontWeight="Bold" Margin="10"/>
 
         <ListBox x:Name="VirtualizingListBox" Grid.Column="1" Grid.Row="1" Margin="10" ItemsSource="{Binding LotsOfItems}" SelectionMode="Extended"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                  VirtualizingPanel.IsVirtualizing="True"
                  VirtualizingPanel.VirtualizationMode="Recycling"
                  VirtualizingPanel.CacheLength="2,2"
-                 VirtualizingPanel.CacheLengthUnit="Item">
+                 VirtualizingPanel.CacheLengthUnit="Item"
+                 VirtualizingPanel.ScrollUnit="Pixel">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <lib:VirtualizingWrapPanel ItemWidth="{Binding DataContext.ItemSize, ElementName=TheWindow}" 
