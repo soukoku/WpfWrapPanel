@@ -428,10 +428,13 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             double.IsInfinity(availableSize.Height) ? extent.Height : availableSize.Height);
     }
 
+
     /// <inheritdoc/>
     protected override Size ArrangeOverride(Size finalSize)
     {
         var generator = ItemContainerGenerator;
+        if (generator == null)
+            return finalSize;
         
         for (int i = 0; i < InternalChildren.Count; i++)
         {
@@ -513,6 +516,9 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
 
         // Need to realize first item to get size
         var generator = ItemContainerGenerator;
+        if (generator == null)
+            return;
+            
         var startPos = generator.GeneratorPositionFromIndex(0);
 
         using (generator.StartAt(startPos, GeneratorDirection.Forward, true))
@@ -615,6 +621,11 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     {
         var generator = ItemContainerGenerator;
         
+        // Generator can be null before the panel is connected to an ItemsControl,
+        // during template application, or after disconnection from the visual tree
+        if (generator == null)
+            return;
+        
         // Clean up items that are no longer visible
         CleanupItems();
 
@@ -657,6 +668,8 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     private void CleanupItems()
     {
         var generator = ItemContainerGenerator;
+        if (generator == null)
+            return;
         
         for (int i = InternalChildren.Count - 1; i >= 0; i--)
         {
