@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
@@ -7,27 +8,21 @@ using System.Windows.Threading;
 namespace WpfWrapPanel;
 
 /// <summary>
-/// Specifies the unit of scrolling for the VirtualizingWrapPanel.
-/// </summary>
-public enum ScrollUnit
-{
-    /// <summary>
-    /// Scrolling is performed in pixel increments for smooth scrolling.
-    /// </summary>
-    Pixel,
-
-    /// <summary>
-    /// Scrolling snaps to item boundaries.
-    /// </summary>
-    Item
-}
-
-/// <summary>
 /// A virtualizing panel that arranges items in a wrapping layout, similar to WrapPanel,
 /// but with UI virtualization support for improved performance with large collections.
 /// </summary>
 public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
 {
+    #region Automation
+
+    /// <inheritdoc/>
+    protected override AutomationPeer OnCreateAutomationPeer()
+    {
+        return new VirtualizingWrapPanelAutomationPeer(this);
+    }
+
+    #endregion
+
     #region Dependency Properties
 
     /// <summary>
@@ -953,4 +948,20 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     }
 
     #endregion
+}
+
+/// <summary>
+/// Specifies the unit of scrolling for the VirtualizingWrapPanel.
+/// </summary>
+public enum ScrollUnit
+{
+    /// <summary>
+    /// Scrolling is performed in pixel increments for smooth scrolling.
+    /// </summary>
+    Pixel,
+
+    /// <summary>
+    /// Scrolling snaps to item boundaries.
+    /// </summary>
+    Item
 }
