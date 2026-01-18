@@ -19,6 +19,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        var test = this.VirtualizingListBox.ItemContainerGenerator;
+        VirtualizingListBox.Loaded+= VirtualizingListBox_Loaded;
+    }
+
+    private void VirtualizingListBox_Loaded(object sender, RoutedEventArgs e)
+    {
+        var test = this.VirtualizingListBox.ItemContainerGenerator;
     }
 
     private void StandardListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

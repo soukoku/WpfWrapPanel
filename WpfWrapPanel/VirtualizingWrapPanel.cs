@@ -73,7 +73,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             // Reset cached sizes to force recalculation
             panel._itemSize = new Size(100, 100);
             panel._stretchedItemSize = new Size(100, 100);
-            
+
             // Clamp scroll offset to prevent invalid positions after size change
             panel.ClampScrollOffset();
         }
@@ -301,7 +301,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     public void SetHorizontalOffset(double offset)
     {
         offset = Math.Max(0, Math.Min(offset, ExtentWidth - ViewportWidth));
-        
+
         // Snap to item boundaries when using item-based scrolling
         if (ScrollUnit == ScrollUnit.Item && Orientation == Orientation.Vertical)
         {
@@ -313,7 +313,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
                 offset = Math.Max(0, Math.Min(offset, ExtentWidth - ViewportWidth));
             }
         }
-        
+
         if (offset != _offset.X)
         {
             _offset.X = offset;
@@ -326,7 +326,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     public void SetVerticalOffset(double offset)
     {
         offset = Math.Max(0, Math.Min(offset, ExtentHeight - ViewportHeight));
-        
+
         // Snap to item boundaries when using item-based scrolling
         if (ScrollUnit == ScrollUnit.Item && Orientation == Orientation.Horizontal)
         {
@@ -338,7 +338,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
                 offset = Math.Max(0, Math.Min(offset, ExtentHeight - ViewportHeight));
             }
         }
-        
+
         if (offset != _offset.Y)
         {
             _offset.Y = offset;
@@ -402,7 +402,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             const double PixelScrollAmount = 16.0;
             return PixelScrollAmount;
         }
-        
+
         // Item scrolling: scroll by one row/column
         return Orientation == Orientation.Horizontal
             ? _itemSize.Height + VerticalSpacing
@@ -417,7 +417,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             const double PixelPerLine = 16.0;
             return PixelPerLine * SystemParameters.WheelScrollLines;
         }
-        
+
         // Item scrolling: scroll by system wheel lines worth of rows/columns
         return GetLineScrollAmount() * SystemParameters.WheelScrollLines;
     }
@@ -429,7 +429,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             // Pixel scrolling: use viewport size
             return isVertical ? ViewportHeight : ViewportWidth;
         }
-        
+
         // Item scrolling: scroll by whole rows/columns that fit in viewport
         var effectiveSize = StretchItems ? _stretchedItemSize : _itemSize;
         if (isVertical)
@@ -711,11 +711,11 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         // Use built-in VirtualizingPanel.CacheLength attached property
         // This is set on the ItemsControl (e.g., ListBox) not the panel itself
         var itemsControl = ItemsControl.GetItemsOwner(this);
-        var cacheLength = itemsControl != null 
-            ? VirtualizingPanel.GetCacheLength(itemsControl) 
+        var cacheLength = itemsControl != null
+            ? VirtualizingPanel.GetCacheLength(itemsControl)
             : new VirtualizationCacheLength(2, 2);
-        var cacheLengthUnit = itemsControl != null 
-            ? VirtualizingPanel.GetCacheLengthUnit(itemsControl) 
+        var cacheLengthUnit = itemsControl != null
+            ? VirtualizingPanel.GetCacheLengthUnit(itemsControl)
             : VirtualizationCacheLengthUnit.Item;
 
         // Use stretched size for layout calculations
@@ -725,11 +725,11 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         {
             // Vertical scrolling
             var rowHeight = effectiveSize.Height + VerticalSpacing;
-            
+
             // Calculate cache in rows based on cache unit
             int cacheRowsBefore = GetCacheRows(cacheLength.CacheBeforeViewport, cacheLengthUnit, rowHeight, _viewport.Height);
             int cacheRowsAfter = GetCacheRows(cacheLength.CacheAfterViewport, cacheLengthUnit, rowHeight, _viewport.Height);
-            
+
             var firstVisibleRow = Math.Max(0, (int)(VerticalOffset / rowHeight) - cacheRowsBefore);
             var visibleRows = (int)Math.Ceiling((_viewport.Height + rowHeight) / rowHeight) + 1 + cacheRowsBefore + cacheRowsAfter;
 
@@ -740,11 +740,11 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         {
             // Horizontal scrolling
             var columnWidth = effectiveSize.Width + HorizontalSpacing;
-            
+
             // Calculate cache in columns based on cache unit
             int cacheColumnsBefore = GetCacheRows(cacheLength.CacheBeforeViewport, cacheLengthUnit, columnWidth, _viewport.Width);
             int cacheColumnsAfter = GetCacheRows(cacheLength.CacheAfterViewport, cacheLengthUnit, columnWidth, _viewport.Width);
-            
+
             var firstVisibleColumn = Math.Max(0, (int)(HorizontalOffset / columnWidth) - cacheColumnsBefore);
             var visibleColumns = (int)Math.Ceiling((_viewport.Width + columnWidth) / columnWidth) + 1 + cacheColumnsBefore + cacheColumnsAfter;
 
@@ -831,7 +831,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
 
         // Use IRecyclingItemContainerGenerator for proper recycling when available
         var recyclingGenerator = generator as IRecyclingItemContainerGenerator;
-        var useRecycling = recyclingGenerator != null && 
+        var useRecycling = recyclingGenerator != null &&
                            VirtualizingPanel.GetVirtualizationMode(this) == VirtualizationMode.Recycling;
 
         for (int i = InternalChildren.Count - 1; i >= 0; i--)
@@ -943,7 +943,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     {
         var maxOffsetX = Math.Max(0, ExtentWidth - ViewportWidth);
         var maxOffsetY = Math.Max(0, ExtentHeight - ViewportHeight);
-        
+
         var newOffsetX = Math.Max(0, Math.Min(_offset.X, maxOffsetX));
         var newOffsetY = Math.Max(0, Math.Min(_offset.Y, maxOffsetY));
 
@@ -966,6 +966,8 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
         {
             _hasPendingMeasure = false;
+            // a trick to ensure item generator is available is to access this property
+            var count = InternalChildren.Count;
             InvalidateMeasure();
         }));
     }
