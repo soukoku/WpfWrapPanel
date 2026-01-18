@@ -820,6 +820,11 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         if (generator == null)
             return;
 
+        // Use IRecyclingItemContainerGenerator for proper recycling when available
+        var recyclingGenerator = generator as IRecyclingItemContainerGenerator;
+        var useRecycling = recyclingGenerator != null && 
+                           VirtualizingPanel.GetVirtualizationMode(this) == VirtualizationMode.Recycling;
+
         for (int i = InternalChildren.Count - 1; i >= 0; i--)
         {
             var pos = new GeneratorPosition(i, 0);
@@ -827,7 +832,16 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
 
             if (itemIndex < _firstVisibleIndex || itemIndex > _lastVisibleIndex)
             {
-                generator.Remove(pos, 1);
+                if (useRecycling)
+                {
+                    // Recycle the container for reuse (better performance)
+                    recyclingGenerator!.Recycle(pos, 1);
+                }
+                else
+                {
+                    // Remove and discard the container
+                    generator.Remove(pos, 1);
+                }
                 RemoveInternalChildRange(i, 1);
             }
         }
