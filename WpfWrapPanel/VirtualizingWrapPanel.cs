@@ -189,7 +189,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
 
     // Cached item size (calculated from first item or from ItemWidth/ItemHeight)
     private Size _itemSize = new(100, 100);
-    
+
     // Stretched item size (when StretchItems is true)
     private Size _stretchedItemSize = new(100, 100);
 
@@ -307,7 +307,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
                 if (itemIndex >= 0)
                 {
                     var itemRect = GetItemRect(itemIndex);
-                    
+
                     if (Orientation == Orientation.Horizontal)
                     {
                         // Vertical scrolling
@@ -358,13 +358,40 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
 
     /// <summary>
     /// Scrolls the panel to bring the item at the specified index into view.
+    /// Use this method to scroll to virtualized items that don't have containers yet.
     /// </summary>
     /// <param name="index">The index of the item to bring into view.</param>
-    public void BringIndexIntoView(int index)
+#if NETFRAMEWORK
+    public new void BringIndexIntoView(int index)
+#else
+    protected override void BringIndexIntoView(int index)
+#endif
     {
+        BringIndexIntoViewInternal(index);
+    }
+
+    #endregion
+
+    #region Layout Overrides
+
+    private void BringIndexIntoViewInternal(int index)
+    {
+        // Ensure layout metrics are calculated before scrolling
         var itemCount = GetItemCount();
         if (index < 0 || index >= itemCount)
             return;
+
+        // Force a measure pass if we haven't calculated layout yet
+        if (_itemsPerRow <= 0 || (_viewport.Width == 0 && _viewport.Height == 0))
+        {
+            // Can't scroll yet, need to wait for layout
+            // Queue a deferred scroll after measure
+            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+            {
+                BringIndexIntoViewInternal(index);
+            }));
+            return;
+        }
 
         var itemRect = GetItemRect(index);
 
@@ -394,9 +421,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         }
     }
 
-    #endregion
 
-    #region Layout Overrides
 
 
     /// <inheritdoc/>
@@ -439,16 +464,16 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         var generator = ItemContainerGenerator;
         if (generator == null)
             return finalSize;
-        
+
         for (int i = 0; i < InternalChildren.Count; i++)
         {
             var child = InternalChildren[i];
             var itemIndex = generator.IndexFromGeneratorPosition(new GeneratorPosition(i, 0));
-            
+
             if (itemIndex >= 0)
             {
                 var itemRect = GetItemRect(itemIndex);
-                
+
                 // Adjust for scroll offset
                 if (Orientation == Orientation.Horizontal)
                 {
@@ -522,7 +547,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         var generator = ItemContainerGenerator;
         if (generator == null)
             return;
-            
+
         var startPos = generator.GeneratorPositionFromIndex(0);
 
         using (generator.StartAt(startPos, GeneratorDirection.Forward, true))
@@ -558,7 +583,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             var availableWidth = double.IsInfinity(availableSize.Width) ? double.MaxValue : availableSize.Width;
             var itemWidthWithSpacing = _itemSize.Width + HorizontalSpacing;
             _itemsPerRow = Math.Max(1, (int)((availableWidth + HorizontalSpacing) / itemWidthWithSpacing));
-            
+
             // Calculate stretched item size
             if (StretchItems && !double.IsInfinity(availableSize.Width))
             {
@@ -576,7 +601,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             var availableHeight = double.IsInfinity(availableSize.Height) ? double.MaxValue : availableSize.Height;
             var itemHeightWithSpacing = _itemSize.Height + VerticalSpacing;
             _itemsPerRow = Math.Max(1, (int)((availableHeight + VerticalSpacing) / itemHeightWithSpacing));
-            
+
             // Calculate stretched item size
             if (StretchItems && !double.IsInfinity(availableSize.Height))
             {
@@ -594,18 +619,18 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     private void CalculateVisibleRange(int itemCount)
     {
         var cacheLength = CacheLength;
-        
+
         // Use stretched size for layout calculations
         var effectiveSize = StretchItems ? _stretchedItemSize : _itemSize;
-        
-        
+
+
         if (Orientation == Orientation.Horizontal)
         {
             // Vertical scrolling
             var rowHeight = effectiveSize.Height + VerticalSpacing;
             var firstVisibleRow = Math.Max(0, (int)(VerticalOffset / rowHeight) - cacheLength);
             var visibleRows = (int)Math.Ceiling((_viewport.Height + rowHeight) / rowHeight) + 1 + (cacheLength * 2);
-            
+
             _firstVisibleIndex = Math.Max(0, firstVisibleRow * _itemsPerRow);
             _lastVisibleIndex = Math.Min(itemCount - 1, _firstVisibleIndex + (visibleRows * _itemsPerRow) - 1);
         }
@@ -615,7 +640,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             var columnWidth = effectiveSize.Width + HorizontalSpacing;
             var firstVisibleColumn = Math.Max(0, (int)(HorizontalOffset / columnWidth) - cacheLength);
             var visibleColumns = (int)Math.Ceiling((_viewport.Width + columnWidth) / columnWidth) + 1 + (cacheLength * 2);
-            
+
             _firstVisibleIndex = Math.Max(0, firstVisibleColumn * _itemsPerRow);
             _lastVisibleIndex = Math.Min(itemCount - 1, _firstVisibleIndex + (visibleColumns * _itemsPerRow) - 1);
         }
@@ -624,7 +649,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     private void RealizeItems()
     {
         var generator = ItemContainerGenerator;
-        
+
         // Generator can be null before the panel is connected to an ItemsControl,
         // during template application, or after disconnection from the visual tree.
         // Schedule a deferred measure to retry once the generator becomes available.
@@ -633,7 +658,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             ScheduleDeferredMeasure();
             return;
         }
-        
+
         // Clean up items that are no longer visible
         CleanupItems();
 
@@ -679,7 +704,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
         var generator = ItemContainerGenerator;
         if (generator == null)
             return;
-        
+
         for (int i = InternalChildren.Count - 1; i >= 0; i--)
         {
             var pos = new GeneratorPosition(i, 0);
@@ -721,25 +746,25 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
     {
         // Use stretched size when StretchItems is enabled
         var effectiveSize = StretchItems ? _stretchedItemSize : _itemSize;
-        
+
         if (Orientation == Orientation.Horizontal)
         {
             var row = itemIndex / _itemsPerRow;
             var column = itemIndex % _itemsPerRow;
-            
+
             var x = column * (effectiveSize.Width + HorizontalSpacing);
             var y = row * (effectiveSize.Height + VerticalSpacing);
-            
+
             return new Rect(x, y, effectiveSize.Width, effectiveSize.Height);
         }
         else
         {
             var column = itemIndex / _itemsPerRow;
             var row = itemIndex % _itemsPerRow;
-            
+
             var x = column * (effectiveSize.Width + HorizontalSpacing);
             var y = row * (effectiveSize.Height + VerticalSpacing);
-            
+
             return new Rect(x, y, effectiveSize.Width, effectiveSize.Height);
         }
     }
@@ -783,7 +808,7 @@ public class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             return;
 
         _hasPendingMeasure = true;
-        
+
         // Schedule a deferred measure after the current layout pass completes
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
         {
