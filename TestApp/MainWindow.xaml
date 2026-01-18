@@ -43,10 +43,13 @@
         <Label Grid.Row="0" Grid.Column="1" Content="VirtualizingWrapPanel" HorizontalAlignment="Center" FontWeight="Bold" Margin="10"/>
 
         <ListBox Grid.Column="1" Grid.Row="1" Margin="10" ItemsSource="{Binding LotsOfItems}"
-                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 VirtualizingPanel.IsVirtualizing="True"
+                 VirtualizingPanel.VirtualizationMode="Recycling">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <lib:VirtualizingWrapPanel IsVirtualizing="True" VirtualizationMode="Recycling"/>
+                    <lib:VirtualizingWrapPanel ItemWidth="70" ItemHeight="90" 
+                                                HorizontalSpacing="5" VerticalSpacing="5"/>
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
         </ListBox>
